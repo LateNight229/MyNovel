@@ -1,16 +1,12 @@
 {
-  "manifest_version": 3,
+  "manifest_version": 2,
   "name": "Novel Reader Mode",
   "version": "1.0.0",
   "description": "Firefox Reader Mode for Vietnamese novel sites - clean reading experience with offline saving",
-  
+
   "permissions": [
     "storage",
     "activeTab",
-    "scripting"
-  ],
-  
-  "host_permissions": [
     "*://*.wattpad.com/*",
     "*://*.truyen.vn/*",
     "*://*.truyencv.com/*",
@@ -18,10 +14,12 @@
     "*://*.truyenfull.com/*",
     "*://*.tvhai.vn/*",
     "*://*.webnovel.com/*",
-    "*://*.novelupdates.com/*"
+    "*://*.novelupdates.com/*",
+    "*://*.wordpress.com/*",
+    "*://wordpress.com/*"
   ],
 
-  "action": {
+  "browser_action": {
     "default_popup": "popup.html",
     "default_title": "Novel Reader Mode",
     "default_icon": {
@@ -33,7 +31,8 @@
   },
 
   "background": {
-    "service_worker": "background-worker.js"
+    "scripts": ["background-worker.js"],
+    "persistent": false
   },
 
   "content_scripts": [
@@ -46,9 +45,15 @@
         "*://*.truyenfull.com/*",
         "*://*.tvhai.vn/*",
         "*://*.webnovel.com/*",
-        "*://*.novelupdates.com/*"
+        "*://*.novelupdates.com/*",
+        "*://*.wordpress.com/*",
+        "*://wordpress.com/*"
       ],
-      "js": ["content-detector.js", "storage-manager.js", "content-script.js"],
+      "js": [
+        "content-detector.js",
+        "storage-manager.js",
+        "content-script.js"
+      ],
       "css": ["content-style.css"],
       "run_at": "document_end"
     }
