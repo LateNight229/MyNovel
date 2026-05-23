@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Offline Library</title>
+  <link rel="stylesheet" href="popup.css">
+  <style>
+    body { width: 100%; min-height: 100vh; }
+    .library-container { padding: 20px; }
+    .library-header { margin-bottom: 30px; }
+    .series-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+    .series-card { background: rgba(30, 41, 59, 0.8); border-radius: 8px; padding: 16px; border: 1px solid rgba(229, 231, 235, 0.1); cursor: pointer; transition: all 0.2s ease; }
+    .series-card:hover { background: rgba(30, 41, 59, 1); border-color: rgba(56, 189, 248, 0.5); }
+    .series-card h3 { color: #f1f5f9; margin-bottom: 8px; font-size: 14px; }
+    .series-card p { color: #cbd5e1; font-size: 12px; margin-bottom: 8px; }
+    .series-stats { display: flex; gap: 12px; font-size: 11px; color: #9ca3af; }
+    .series-actions { display: flex; gap: 8px; margin-top: 12px; }
+    .series-actions .btn { flex: 1; padding: 6px; font-size: 11px; }
+    .empty-state { text-align: center; padding: 60px 20px; color: #6b7280; }
+    .empty-state p { margin-bottom: 20px; }
+  </style>
+</head>
+<body>
+  <div class="library-container">
+    <div class="library-header">
+      <h1>📖 Offline Library</h1>
+      <p style="color: #9ca3af; margin-top: 8px;">View and manage your saved novel chapters</p>
+    </div>
+
+    <div id="library-content">
+      <div class="empty-state">
+        <p>No saved series yet</p>
+        <p style="font-size: 12px;">Open a novel chapter and click Save to add it to your library</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="storage-manager.js"></script>
+  <script>
+    async function loadLibrary() {
+      await StorageManager.init();
+      const series = await StorageManager.getAllSeries();
+      const container = document.getElementById('library-content');
+
+      if (series.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <p>No saved series yet</p>
+            <p style="font-size: 12px;">Open a novel chapter and click Save to add it to your library</p>
+          </div>
+        `;
+        return;
+      }
+
+      let html = '<div class="series-grid">';
+      for (const s of series) {
+        const chapters = await StorageManager.getChapters(s.id);
+        const wordCount = chapters.reduce((sum, ch) => sum + (ch.wordCount || 0), 0);
+        
+        html += `
+          <div class="series-card">
+            <h3>${s.title}</h3>
+            <p>${s.author}</p>
+            <div class="series-stats">
+              <span>${chapters.length} chapters</span>
+              <span>${wordCount.toLocaleString()} words</span>
+            </div>
+            <div class="series-actions">
+              <button class="btn btn-secondary" onclick="exportSeries('${s.id}')">Export</button>
+              <button class="btn" onclick="deleteSeries('${s.id}')">Delete</button>
+            </div>
+          </div>
+        `;
+      }
+      html += '</div>';
+      container.innerHTML = html;
+    }
+
+    async function exportSeries(seriesId) {
+      const series = (await StorageManager.getAllSeries()).find(s => s.id === seriesId);
+      const chapters = await StorageManager.getChapters(seriesId);
+      
+      if (chapters.length === 0) {
+        alert('No chapters to export');
+        return;
+      }
+
+      const epubData = EPUBBuilder.buildEPUB(series, chapters);
+      const blob = new Blob([JSON.stringify(epubData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${series.title.replace(/[^a-z0-9]/gi, '_')}.epub`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    async function deleteSeries(seriesId) {
+      if (confirm('Delete this series and all chapters?')) {
+        // Implement deletion
+        loadLibrary();
+      }
+    }
+
+    loadLibrary();
+  </script>
+</body>
+</html>

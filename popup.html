@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Novel Reader Mode</title>
+  <link rel="stylesheet" href="styles/popup.css">
+</head>
+<body>
+  <div class="popup-container">
+    <header class="popup-header">
+      <h1>📚 Novel Reader Mode</h1>
+      <p class="subtitle">Distraction-free reading for novel sites</p>
+    </header>
+
+    <main class="popup-main">
+      <!-- Reader Mode Toggle -->
+      <section class="section">
+        <h2 class="section-title">Reader Mode</h2>
+        <div class="toggle-group">
+          <button id="toggle-reader-btn" class="btn btn-primary btn-large">
+            🎯 Enable Reader Mode
+          </button>
+          <span id="reader-status" class="status">Inactive</span>
+        </div>
+      </section>
+
+      <!-- Quick Settings -->
+      <section class="section">
+        <h2 class="section-title">Quick Settings</h2>
+        <div class="settings-grid">
+          <div class="setting-item">
+            <label>Font Size</label>
+            <div class="input-group">
+              <input type="range" id="quick-font-size" min="12" max="32" value="18" class="slider">
+              <span id="font-size-value">18px</span>
+            </div>
+          </div>
+          <div class="setting-item">
+            <label>Theme</label>
+            <select id="theme-select" class="select">
+              <option value="dark">Dark</option>
+              <option value="sepia">Sepia</option>
+              <option value="light">Light</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <!-- Save & Export -->
+      <section class="section">
+        <h2 class="section-title">Offline Library</h2>
+        <div class="button-group">
+          <button id="save-chapter-btn" class="btn btn-secondary">💾 Save Chapter</button>
+          <button id="view-library-btn" class="btn btn-secondary">📖 View Library</button>
+          <button id="export-epub-btn" class="btn btn-secondary">📥 Export EPUB</button>
+        </div>
+      </section>
+
+      <!-- Statistics -->
+      <section class="section">
+        <h2 class="section-title">Library Stats</h2>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">Series</div>
+            <div class="stat-value" id="stat-series">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Chapters</div>
+            <div class="stat-value" id="stat-chapters">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Words</div>
+            <div class="stat-value" id="stat-words">0</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Pagination -->
+      <section class="section">
+        <h2 class="section-title">Chapter List</h2>
+        <div id="chapter-list" class="chapter-list"></div>
+      </section>
+
+      <!-- Settings Link -->
+      <section class="section">
+        <button id="settings-btn" class="btn btn-text">⚙️ Advanced Settings</button>
+      </section>
+    </main>
+
+    <footer class="popup-footer">
+      <p>v1.0.0 • <a href="#" id="report-bug">Report Issue</a></p>
+    </footer>
+  </div>
+
+  <script src="storage-manager.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
