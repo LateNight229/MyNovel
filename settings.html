@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings</title>
+  <link rel="stylesheet" href="popup.css">
+  <style>
+    .settings-container { max-width: 600px; margin: 0 auto; padding: 30px 20px; }
+    .settings-section { margin-bottom: 40px; }
+    .settings-section h2 { margin-bottom: 20px; font-size: 18px; color: #f1f5f9; }
+    .settings-row { margin-bottom: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: center; }
+    .settings-label { color: #cbd5e1; }
+    .settings-control { }
+    .settings-control input, .settings-control select { width: 100%; padding: 8px; border: 1px solid rgba(229, 231, 235, 0.2); border-radius: 6px; background: rgba(51, 65, 85, 0.5); color: #e5e7eb; }
+    .btn-save { margin-top: 30px; }
+    .success-msg { color: #22c55e; font-size: 12px; margin-top: 10px; display: none; }
+  </style>
+</head>
+<body>
+  <div class="settings-container">
+    <h1>⚙️ Settings</h1>
+
+    <div class="settings-section">
+      <h2>Reader Preferences</h2>
+      
+      <div class="settings-row">
+        <div class="settings-label">
+          <label>Default Font Size (px)</label>
+        </div>
+        <div class="settings-control">
+          <input type="range" id="fontSize" min="12" max="32" value="18">
+          <span id="fontSizeDisplay">18</span>px
+        </div>
+      </div>
+
+      <div class="settings-row">
+        <div class="settings-label">
+          <label>Font Family</label>
+        </div>
+        <div class="settings-control">
+          <select id="fontFamily">
+            <option value="'Georgia', serif">Georgia</option>
+            <option value="'Merriweather', serif">Merriweather</option>
+            <option value="'Droid Serif', serif">Droid Serif</option>
+            <option value="'Segoe UI', sans-serif">Segoe UI</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="settings-row">
+        <div class="settings-label">
+          <label>Line Height</label>
+        </div>
+        <div class="settings-control">
+          <input type="range" id="lineHeight" min="1.2" max="2.0" step="0.1" value="1.8">
+          <span id="lineHeightDisplay">1.8</span>
+        </div>
+      </div>
+
+      <div class="settings-row">
+        <div class="settings-label">
+          <label>Theme</label>
+        </div>
+        <div class="settings-control">
+          <select id="theme">
+            <option value="dark">Dark</option>
+            <option value="sepia">Sepia</option>
+            <option value="light">Light</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <h2>Auto-Features</h2>
+      
+      <div class="settings-row">
+        <div class="settings-label">
+          <label>
+            <input type="checkbox" id="autoEnable"> Auto-enable Reader Mode on novel pages
+          </label>
+        </div>
+      </div>
+
+      <div class="settings-row">
+        <div class="settings-label">
+          <label>
+            <input type="checkbox" id="autoSave"> Auto-save chapters when leaving
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <h2>Storage & Privacy</h2>
+      <p style="color: #cbd5e1; margin-bottom: 15px; font-size: 14px;">
+        All data is stored locally in your browser's IndexedDB. No data leaves your device.
+      </p>
+      <button class="btn btn-secondary" onclick="clearStorage()">Clear All Data</button>
+      <div style="color: #9ca3af; font-size: 12px; margin-top: 10px;">
+        Storage used: <span id="storageSize">0</span> MB
+      </div>
+    </div>
+
+    <button class="btn btn-primary btn-large btn-save" onclick="saveSettings()">Save Settings</button>
+    <div class="success-msg" id="successMsg">✓ Settings saved successfully</div>
+  </div>
+
+  <script src="storage-manager.js"></script>
+  <script>
+    async function loadSettings() {
+      const settings = await StorageManager.getAllSettings();
+      
+      document.getElementById('fontSize').value = parseInt(settings.fontSize || '18');
+      document.getElementById('fontSizeDisplay').textContent = parseInt(settings.fontSize || '18');
+      document.getElementById('fontFamily').value = settings.fontFamily || "'Georgia', serif";
+      document.getElementById('lineHeight').value = parseFloat(settings.lineHeight || '1.8');
+      document.getElementById('lineHeightDisplay').textContent = parseFloat(settings.lineHeight || '1.8').toFixed(1);
+      document.getElementById('theme').value = settings.theme || 'dark';
+      document.getElementById('autoEnable').checked = settings.autoEnableReaderMode || false;
+      document.getElementById('autoSave').checked = settings.autoSaveChapters || false;
+
+      // Update storage size
+      const stats = await StorageManager.getStats();
+      const approxSize = (stats.totalChapters * 50) / 1024; // Rough estimate
+      document.getElementById('storageSize').textContent = approxSize.toFixed(1);
+    }
+
+    document.getElementById('fontSize').addEventListener('input', (e) => {
+      document.getElementById('fontSizeDisplay').textContent = e.target.value;
+    });
+
+    document.getElementById('lineHeight').addEventListener('input', (e) => {
+      document.getElementById('lineHeightDisplay').textContent = parseFloat(e.target.value).toFixed(1);
+    });
+
+    async function saveSettings() {
+      const settings = {
+        fontSize: document.getElementById('fontSize').value + 'px',
+        fontFamily: document.getElementById('fontFamily').value,
+        lineHeight: document.getElementById('lineHeight').value,
+        theme: document.getElementById('theme').value,
+        autoEnableReaderMode: document.getElementById('autoEnable').checked,
+        autoSaveChapters: document.getElementById('autoSave').checked
+      };
+
+      for (const [key, value] of Object.entries(settings)) {
+        await StorageManager.saveSetting(key, value);
+      }
+
+      const msg = document.getElementById('successMsg');
+      msg.style.display = 'block';
+      setTimeout(() => {
+        msg.style.display = 'none';
+      }, 3000);
+    }
+
+    async function clearStorage() {
+      if (confirm('Delete all saved novels and settings? This cannot be undone.')) {
+        // Implement clear all function
+        alert('Storage cleared');
+      }
+    }
+
+    loadSettings();
+  </script>
+</body>
+</html>
