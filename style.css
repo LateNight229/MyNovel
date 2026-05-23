@@ -1,0 +1,185 @@
+/* -------------------- RESET -------------------- */
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+
+/* -------------------- BODY -------------------- */
+
+body{
+  font-family:Arial, sans-serif;
+  background:#0f172a;
+  color:#e5e7eb;
+  line-height:1.6;
+}
+
+/* -------------------- HEADER -------------------- */
+
+.header{
+  text-align:center;
+  padding:40px 20px;
+  background:#111827;
+}
+
+.header h1{
+  font-size:40px;
+  margin-bottom:10px;
+}
+
+.header p{
+  color:#9ca3af;
+}
+
+/* -------------------- MAIN LAYOUT -------------------- */
+
+.container{
+  width:90%;
+  max-width:1000px;
+  margin:30px auto;
+}
+
+/* -------------------- CARD -------------------- */
+
+.card{
+  background:#1e293b;
+  padding:24px;
+  border-radius:16px;
+  margin-bottom:24px;
+}
+
+.card h2{
+  margin-bottom:20px;
+}
+
+/* -------------------- FORM -------------------- */
+
+.form-grid{
+  display:grid;
+  gap:12px;
+}
+
+input,
+select,
+textarea{
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:10px;
+  background:#334155;
+  color:white;
+}
+
+textarea{
+  min-height:90px;
+  resize:vertical;
+}
+
+/* -------------------- BUTTON -------------------- */
+
+button{
+  margin-top:16px;
+  padding:12px 18px;
+  border:none;
+  border-radius:10px;
+  background:#38bdf8;
+  color:#020617;
+  font-weight:bold;
+  cursor:pointer;
+  transition:0.2s;
+}
+
+button:hover{
+  background:#0ea5e9;
+}
+
+/* -------------------- FILTER -------------------- */
+
+.filter{
+  display:flex;
+  gap:12px;
+  margin-bottom:24px;
+}
+
+.filter input{
+  flex:1;
+}
+
+.filter select{
+  width:180px;
+}
+
+/* -------------------- STORY LIST -------------------- */
+
+.story-list{
+  display:grid;
+  gap:16px;
+}
+
+/* -------------------- STORY CARD -------------------- */
+
+.story-card{
+  background:#1e293b;
+  padding:20px;
+  border-radius:16px;
+  border-left:5px solid #38bdf8;
+}
+
+.story-card h3{
+  font-size:24px;
+  margin-bottom:10px;
+}
+
+.story-card p{
+  margin-bottom:8px;
+  color:#cbd5e1;
+}
+
+/* -------------------- STORY ACTIONS -------------------- */
+
+.story-actions{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-top:15px;
+}
+
+.story-actions a{
+  padding:10px 14px;
+  background:#22c55e;
+  color:#052e16;
+  border-radius:10px;
+  text-decoration:none;
+  font-weight:bold;
+}
+
+.story-actions button{
+  margin-top:0;
+}
+
+/* -------------------- FOOTER -------------------- */
+
+.footer{
+  text-align:center;
+  padding:30px;
+  color:#64748b;
+}
+
+/* -------------------- RESPONSIVE -------------------- */
+
+@media(max-width:600px){
+
+  .filter{
+    flex-direction:column;
+  }
+
+  .filter select{
+    width:100%;
+  }
+
+  .header h1{
+    font-size:30px;
+  }
+
+}
