@@ -414,6 +414,27 @@ body.light-mode .modal-box{
     }
 }
 
+.focus-mode{
+    position:fixed;
+    inset:20px;
+    z-index:999;
+
+    overflow:auto;
+}
+.focus-mode .section-title{
+    font-size:28px;
+}
+
+.reader-content{
+    max-height:75vh;
+    overflow-y:auto;
+}
+
+.reader-content{
+    padding:20px;
+    border-radius:16px;
+}
+
 @keyframes popup{
     from{
         opacity:0;
@@ -537,13 +558,30 @@ body.light-mode .modal-box{
 
         <section class="panel" id="readerPanel" style="display:none;">
 
-            <div class="section-title" id="readerTitle">
-                Reader
-            </div>
+        <div class="section-title" id="readerTitle">
+            Reader
+        </div>
 
-            <div class="reader-content" id="readerContent"></div>
+        <div style="display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap;">
 
-        </section>
+            <button class="btn" onclick="changeFont(-1)">A-</button>
+            <button class="btn" onclick="changeFont(1)">A+</button>
+
+            <button class="btn" onclick="changeLine(-0.1)">↕ -</button>
+            <button class="btn" onclick="changeLine(0.1)">↕ +</button>
+
+            <button class="btn" onclick="toggleFullscreen()">⛶ Focus</button>
+
+        </div>
+
+        <div
+            id="progressText"
+            style="color:var(--muted);margin-bottom:10px;"
+        ></div>
+
+        <div class="reader-content" id="readerContent"></div>
+
+    </section>
 
     </main>
 
@@ -717,6 +755,36 @@ JSON.parse(localStorage.getItem("offlineNovels")) || [];
 
 let parsedContentCache = "";
 let parsedTitleCache = "";
+
+let readerSettings =
+JSON.parse(localStorage.getItem("readerSettings")) || {
+    fontSize: 17,
+    lineHeight: 1.8,
+    theme: "dark"
+};
+
+let readingProgress =
+JSON.parse(localStorage.getItem("readingProgress")) || {};
+
+let currentReadingId = null;
+
+document
+.getElementById("readerContent")
+.addEventListener("scroll", () => {
+
+    if(!currentReadingId) return;
+
+    const reader =
+    document.getElementById("readerContent");
+
+    saveProgress(
+        currentReadingId,
+        reader.scrollTop
+    );
+
+    updateProgressUI();
+});
+
 
 function saveStorage(){
 
@@ -1112,20 +1180,38 @@ function renderOffline(data = offlineNovels){
 
 function readOffline(id){
 
-    const novel =
-    offlineNovels.find(n=>n.id === id);
+    currentReadingId = id;
 
+    const novel = offlineNovels.find(n=>n.id === id);
     if(!novel) return;
 
     showPanel("readerPanel");
 
-    document
-    .getElementById("readerTitle")
-    .textContent = novel.title;
+    document.getElementById("readerTitle").textContent = novel.title;
 
-    document
-    .getElementById("readerContent")
-    .textContent = novel.content;
+    const contentEl = document.getElementById("readerContent");
+
+    contentEl.textContent = novel.content;
+
+    // APPLY SETTINGS
+    contentEl.style.fontSize =
+        readerSettings.fontSize + "px";
+
+    contentEl.style.lineHeight =
+        readerSettings.lineHeight;
+
+    // RESTORE POSITION
+    setTimeout(() => {
+
+        const saved = readingProgress[id];
+
+        if(saved){
+            contentEl.scrollTop = saved;
+        }
+
+    }, 100);
+
+    updateProgressUI();
 
 }
 
@@ -1432,6 +1518,83 @@ function extractTextWithFormat(root){
         .replace(/\r/g, "")
         .replace(/\n{3,}/g, "\n\n")
         .trim();
+}
+
+// setting
+function saveReaderSettings(){
+    localStorage.setItem(
+        "readerSettings",
+        JSON.stringify(readerSettings)
+    );
+}
+
+function saveProgress(novelId, position){
+    readingProgress[novelId] = position;
+
+    localStorage.setItem(
+        "readingProgress",
+        JSON.stringify(readingProgress)
+    );
+}
+// font control
+function changeFont(delta){
+    readerSettings.fontSize += delta;
+    if(readerSettings.fontSize < 12) readerSettings.fontSize = 12;
+
+    document.getElementById("readerContent").style.fontSize =
+        readerSettings.fontSize + "px";
+
+    saveReaderSettings();
+}
+//light height control
+function changeLine(delta){
+    readerSettings.lineHeight += delta;
+    if(readerSettings.lineHeight < 1.2) readerSettings.lineHeight = 1.2;
+
+    document.getElementById("readerContent").style.lineHeight =
+        readerSettings.lineHeight;
+
+    saveReaderSettings();
+}
+
+function updateProgressUI(){
+
+    const docHeight =
+        document.documentElement.scrollHeight - window.innerHeight;
+
+    const progress =
+        Math.min(100, (window.scrollY / docHeight) * 100);
+
+    document.getElementById("progressText").textContent =
+        `Reading progress: ${progress.toFixed(1)}%`;
+}
+
+function toggleFullscreen(){
+
+    const reader = document.getElementById("readerPanel");
+
+    reader.classList.toggle("focus-mode");
+
+    document.querySelector(".sidebar").style.display =
+        reader.classList.contains("focus-mode") ? "none" : "block";
+}
+
+function updateProgressUI(){
+
+    const reader =
+    document.getElementById("readerContent");
+
+    const docHeight =
+        reader.scrollHeight - reader.clientHeight;
+
+    const progress =
+        Math.min(
+            100,
+            (reader.scrollTop / docHeight) * 100
+        );
+
+    document.getElementById("progressText").textContent =
+        `Reading progress: ${progress.toFixed(1)}%`;
 }
 
 /* =========================
