@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glass Novel Reader</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Glass Novel Reader</h1>
+            <button id="toggleReaderMode" class="btn">Reader Mode</button>
+        </header>
+
+        <div class="main-content">
+            <aside class="sidebar">
+                <div id="library">
+                    <h2>Library</h2>
+                    <div id="novelList"></div>
+                </div>
+            </aside>
+
+            <main class="reader">
+                <div id="novelTitle" class="novel-title"></div>
+                <div id="chapterTitle" class="chapter-title"></div>
+                <div id="content" class="content"></div>
+                
+                <div class="navigation">
+                    <button id="prevBtn" class="btn">← Previous</button>
+                    <span id="chapterInfo"></span>
+                    <button id="nextBtn" class="btn">Next →</button>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="parser.js"></script>
+    <script src="reader.js"></script>
+    <script src="library.js"></script>
+</body>
+</html>
