@@ -562,6 +562,18 @@ body.light-mode .modal-box{
             Reader
         </div>
 
+        <!-- CHAPTER NAV (ĐÚNG CHỖ Ở ĐÂY) -->
+        <div style="display:flex;gap:10px;margin-bottom:10px;align-items:center;">
+
+            <button class="btn" onclick="prevChapter()">⬅ Prev</button>
+
+            <div id="chapterInfo" style="color:var(--muted)"></div>
+
+            <button class="btn" onclick="nextChapter()">Next ➡</button>
+
+        </div>
+
+        <!-- READER CONTROL -->
         <div style="display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap;">
 
             <button class="btn" onclick="changeFont(-1)">A-</button>
@@ -574,10 +586,9 @@ body.light-mode .modal-box{
 
         </div>
 
-        <div
-            id="progressText"
-            style="color:var(--muted);margin-bottom:10px;"
-        ></div>
+        <div id="progressText"
+            style="color:var(--muted);margin-bottom:10px;">
+        </div>
 
         <div class="reader-content" id="readerContent"></div>
 
@@ -777,10 +788,7 @@ document
     const reader =
     document.getElementById("readerContent");
 
-    saveProgress(
-        currentReadingId,
-        reader.scrollTop
-    );
+    saveProgress(currentReadingId, reader.scrollTop);
 
     updateProgressUI();
 });
@@ -980,37 +988,24 @@ function triggerOfflineUpload(){
 
 }
 
-document
-.getElementById("offlineFileInput")
-.addEventListener("change",async function(event){
+document.getElementById("offlineFileInput")
+.addEventListener("change", async function(event){
 
     const file = event.target.files[0];
-
     if(!file) return;
 
     const text = await file.text();
 
     offlineNovels.unshift({
-
-        id:Date.now(),
-
-        title:file.name,
-
-        content:text,
-
-        chapter:"Offline File",
-
-        status:"Reading"
-
+        id: Date.now(),
+        title: file.name,
+        chapters: [],
+        chapter: 0,
+        status: "Reading"
     });
 
     saveStorage();
-
     renderOffline();
-
-    document
-    .getElementById("confirmModal")
-    .classList.add("active");
 
 });
 
@@ -1180,38 +1175,35 @@ function renderOffline(data = offlineNovels){
 
 function readOffline(id){
 
-    currentReadingId = id;
+     currentReadingId = id;
+     contentEl.scrollTop = 0;
 
     const novel = offlineNovels.find(n=>n.id === id);
     if(!novel) return;
 
     showPanel("readerPanel");
 
-    document.getElementById("readerTitle").textContent = novel.title;
+    // fallback nếu chưa có structure chapters
+    if(typeof novel.content === "string"){
+        novel.content = {
+            chapters: [novel.content]
+        };
+    }
+
+    const chapterIndex = novel.chapter || 0;
+    const chapter = novel.content.chapters[chapterIndex];
 
     const contentEl = document.getElementById("readerContent");
 
-    contentEl.textContent = novel.content;
+    contentEl.textContent = chapter;
 
-    // APPLY SETTINGS
-    contentEl.style.fontSize =
-        readerSettings.fontSize + "px";
+    document.getElementById("readerTitle").textContent = novel.title;
 
-    contentEl.style.lineHeight =
-        readerSettings.lineHeight;
+    document.getElementById("chapterInfo").textContent =
+        `Chapter ${chapterIndex + 1} / ${novel.content.chapters.length}`;
 
-    // RESTORE POSITION
-    setTimeout(() => {
-
-        const saved = readingProgress[id];
-
-        if(saved){
-            contentEl.scrollTop = saved;
-        }
-
-    }, 100);
-
-    updateProgressUI();
+    contentEl.style.fontSize = readerSettings.fontSize + "px";
+    contentEl.style.lineHeight = readerSettings.lineHeight;
 
 }
 
@@ -1528,14 +1520,22 @@ function saveReaderSettings(){
     );
 }
 
-function saveProgress(novelId, position){
-    readingProgress[novelId] = position;
+function saveProgress(novelId, scrollTop){
+
+    const novel = offlineNovels.find(n=>n.id === novelId);
+    if(!novel) return;
+
+    readingProgress[novelId] = {
+        chapterIndex: novel.chapter,
+        scrollTop
+    };
 
     localStorage.setItem(
         "readingProgress",
         JSON.stringify(readingProgress)
     );
 }
+
 // font control
 function changeFont(delta){
     readerSettings.fontSize += delta;
@@ -1579,22 +1579,42 @@ function toggleFullscreen(){
         reader.classList.contains("focus-mode") ? "none" : "block";
 }
 
-function updateProgressUI(){
+// CHAPTER SPLITTER
+function splitChapters(text){
 
-    const reader =
-    document.getElementById("readerContent");
+    // simple rule: detect "Chapter"
+    const raw = text.split(/chapter\s+\d+/i);
 
-    const docHeight =
-        reader.scrollHeight - reader.clientHeight;
+    if(raw.length <= 1){
+        return [text];
+    }
 
-    const progress =
-        Math.min(
-            100,
-            (reader.scrollTop / docHeight) * 100
-        );
+    return raw
+        .map(t => t.trim())
+        .filter(t => t.length > 50);
+}
 
-    document.getElementById("progressText").textContent =
-        `Reading progress: ${progress.toFixed(1)}%`;
+// NEXT / PREV CHAPTER
+function nextChapter(){
+
+    const novel = offlineNovels.find(n=>n.id === currentReadingId);
+    if(!novel) return;
+
+    if(novel.chapter < novel.content.chapters.length - 1){
+        novel.chapter++;
+        readOffline(novel.id);
+    }
+}
+
+function prevChapter(){
+
+    const novel = offlineNovels.find(n=>n.id === currentReadingId);
+    if(!novel) return;
+
+    if(novel.chapter > 0){
+        novel.chapter--;
+        readOffline(novel.id);
+    }
 }
 
 /* =========================
